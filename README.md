@@ -61,7 +61,6 @@ Luminous Lute 是一个专为德语学习者设计的现代化语言学习应用
 - **Node.js 18+**: [下载安装](https://nodejs.org/)
 - **npm** (随 Node.js 一起安装)
 - **Git**: [下载安装](https://git-scm.com/)
-- **Gemini API 密钥** (可选，用于 AI 功能)
 
 ---
 
@@ -115,7 +114,7 @@ GEMINI_API_KEY=your_api_key_here
 ```powershell
 # 需要打开两个终端窗口
 
-# 终端 1: 启动前端 (http://localhost:5173)
+# 终端 1: 启动前端 (http://localhost:3000)
 npm run dev
 
 # 终端 2: 启动词典服务器 (端口 3003)
@@ -130,7 +129,7 @@ npm run dev:both
 
 ### 6. 访问应用
 
-打开浏览器访问：http://localhost:5173
+打开浏览器访问：http://localhost:3000
 
 ---
 
@@ -203,7 +202,49 @@ npm run dev:both
 
 ### 6. 访问应用
 
-打开浏览器访问：http://localhost:5173
+打开浏览器访问：http://localhost:3000
+
+---
+
+## 📦 词典数据准备
+
+本应用需要词典数据库文件才能正常工作。请按照以下步骤准备：
+
+### 1. 下载词典数据
+
+从以下来源下载 Wiktionary 导出文件（建议使用德语）：
+
+- **德语 Wiktionary**: https://kaikki.org/dict/dewikt_raw_json.json
+- 或从 https://kaikki.org/ 获取其他语言
+
+### 2. 转换数据为 SQLite 数据库
+
+运行项目中的转换脚本：
+
+```bash
+# 进入脚本目录
+cd scripts
+
+# 安装 Python 依赖（如需要）
+pip install -r requirements.txt
+
+# 运行转换脚本
+python extract-test-data.py /path/to/dewikt_raw_json.json
+```
+
+### 3. 放置数据库文件
+
+将生成的 `german_dict.db` 文件放入对应语言目录：
+
+```
+dict/
+└── German/
+    └── german_dict.db    # 德语词典数据库
+```
+
+### 4. 验证安装
+
+启动应用后，词典服务器会自动连接数据库。可以在浏览器控制台查看连接状态。
 
 ---
 
