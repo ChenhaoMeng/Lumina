@@ -506,4 +506,4 @@ entries.sort((a, b) => typeOrder[a.entryType] - typeOrder[b.entryType]);
 
 ---
 
-**Lumina** - 让德语学习更智能、更高效 ✨
+**Lumina** - 让语言学习更智能、更高效 ✨
