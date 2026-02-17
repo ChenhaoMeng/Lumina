@@ -3,7 +3,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback, FC, ReactNode, FormEvent } from 'react';
 import { Term, TermStatus, Language, GeminiSuggestion, AIConfig, UserSettings } from '../types';
-import { X, Sparkles, Save, Trash2, ExternalLink, Hash, Quote, Info, Check, Link as LinkIcon, Loader2, GitMerge, BookOpen, Globe, Book } from 'lucide-react';
+import { X, Sparkles, Save, Trash2, ExternalLink, Hash, Quote, Info, Check, Link as LinkIcon, Loader2, GitMerge, BookOpen, Book } from 'lucide-react';
 import { analyzeTerm } from '../services/llmService';
 import { queryWiktionary, WiktionaryEntry } from '../services/wiktionaryService';
 
@@ -1084,21 +1084,36 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
                          <span className="text-[10px] uppercase tracking-widest">Searching Dictionaries...</span>
                      </div>
                  ) : (
-                     <div className="p-6 space-y-5">
-                         {/* Grammar / Linguistic Analysis */}
-                         <div className="flex items-start gap-4">
-                             <div className="shrink-0 mt-1 bg-indigo-500/20 p-2 rounded-xl text-indigo-400 border border-indigo-500/30">
-                             <Info size={16} />
-                             </div>
-                              <div>
-                              <h4 className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1.5">Linguistic Analysis</h4>
-                               <div className="text-sm text-slate-700 leading-relaxed font-medium">
-                                  {renderGrammarAnalysis(aiSuggestion?.grammar)}
-                               </div>
-                             </div>
-                        </div>
+                      <div className="p-6 space-y-5">
+                          {/* Translation */}
+                          {aiSuggestion?.translation && (
+                            <div className="flex items-start gap-4">
+                              <div className="shrink-0 mt-1 bg-emerald-500/20 p-2 rounded-xl text-emerald-400 border border-emerald-500/30">
+                                <Book size={16} />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-1.5">Translation</h4>
+                                <div className="text-sm text-slate-700 leading-relaxed font-medium">
+                                  {aiSuggestion.translation}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
-                        {/* Examples */}
+                          {/* Grammar / Linguistic Analysis */}
+                          <div className="flex items-start gap-4">
+                              <div className="shrink-0 mt-1 bg-indigo-500/20 p-2 rounded-xl text-indigo-400 border border-indigo-500/30">
+                              <Info size={16} />
+                              </div>
+                               <div>
+                               <h4 className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1.5">Linguistic Analysis</h4>
+                                <div className="text-sm text-slate-700 leading-relaxed font-medium">
+                                   {renderGrammarAnalysis(aiSuggestion?.grammar)}
+                                </div>
+                              </div>
+                         </div>
+
+                         {/* Examples */}
                          {aiSuggestion?.examples && aiSuggestion.examples.length > 0 && (
                             <div className="space-y-3 pt-5 border-t border-slate-200">
                              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -1114,34 +1129,7 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
                             </div>
                         )}
                         
-                        {/* Source Links (Grounding) */}
-                         {aiSuggestion?.sources && aiSuggestion.sources.length > 0 && (
-                            <div className="space-y-3 pt-5 border-t border-slate-200">
-                                 <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Globe size={12} /> Sources
-                                 </h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {aiSuggestion.sources.map((source, i) => (
-                                        <a 
-                                            key={i} 
-                                            href={source.uri} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                             className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-[10px] text-indigo-600 font-bold border border-slate-300 transition-colors truncate max-w-full"
-                                        >
-                                            <ExternalLink size={10} />
-                                             {source.title || (() => {
-                                               try {
-                                                 return new URL(source.uri).hostname;
-                                               } catch {
-                                                 return 'source';
-                                               }
-                                             })()}
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+
                     </div>
                 )}
             </div>

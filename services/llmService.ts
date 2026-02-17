@@ -104,14 +104,14 @@ ${wiktionaryTranslations ? `Translations: ${wiktionaryTranslations}` : 'No trans
 TASK: Based on the Wiktionary data above, provide a complete linguistic analysis.
 
 INSTRUCTIONS:
-1. **DEFINITION**: Provide the primary English definition(s) based on Wiktionary data. If Wiktionary has definitions, use those. If not, provide your best definition.
+1. **TRANSLATION**: Provide the primary English translation(s) for this word based on Wiktionary data. If Wiktionary has translations, use those. If not, provide your best English translation.
 2. **GRAMMAR**: Provide detailed grammatical analysis for this word in this context.
 3. **ROOT WORD**: Identify the dictionary form.
 4. **EXAMPLES**: Provide 2 natural example sentences in ${language.name}.
 
-CRITICAL: The definition MUST be based on Wiktionary data when available.
+CRITICAL: The translation MUST be based on Wiktionary data when available.
 
-RETURN JSON with: definition, grammar, rootWord, examples`;
+RETURN JSON with: translation, grammar, rootWord, examples`;
   } else {
     // 回退到标准prompt
     prompt = `LINGUISTIC ANALYSIS TASK
@@ -121,12 +121,12 @@ SENTENCE: "${context}"
 LANGUAGE: ${language.name}
 
 INSTRUCTIONS:
-1. Provide the primary English definition(s) for this word
+1. Provide the primary English translation(s) for this word
 2. Give detailed grammatical analysis
 3. Identify dictionary form (root word)
 4. Provide 2 example sentences in ${language.name}
 
-RETURN JSON with: definition, grammar, rootWord, examples`;
+RETURN JSON with: translation, grammar, rootWord, examples`;
   }
   
   // 添加Wiktionary URL作为来源
@@ -260,10 +260,8 @@ Search query should be: "${term} ${language} dictionary definition translation"`
       grammar: suggestion.grammar, // Can be string or object
       rootWord: String(suggestion.rootWord || ''),
       examples: Array.isArray(suggestion.examples) ? suggestion.examples.map(e => String(e || '')) : [],
-      sources: suggestion.sources || []
+      sources: [] // Sources removed as per user request
     };
-    
-         // 不再自动添加Wiktionary来源，因为已经在UI中单独显示
     
     return result;
   } else {
@@ -431,23 +429,14 @@ Search query should be: "${term} ${language} dictionary definition translation"`
          if (!suggestion.rootWord) suggestion.rootWord = term;
          if (!suggestion.examples) suggestion.examples = [];
          
-         // Normalize response structure for all providers
-         const result = {
-           translation: String(suggestion.translation || ''),
-           grammar: suggestion.grammar, // Can be string or object
-           rootWord: String(suggestion.rootWord || ''),
-           examples: Array.isArray(suggestion.examples) ? suggestion.examples.map(e => String(e || '')) : [],
-           sources: suggestion.sources || []
-         };
-        
-        // 添加Wiktionary作为来源
-        const wiktionaryUrl = await getWiktionaryUrl(term, language);
-        if (!result.sources.some(s => s.uri === wiktionaryUrl)) {
-          result.sources.push({
-            uri: wiktionaryUrl,
-            title: `Wiktionary: ${term}`
-          });
-        }
+          // Normalize response structure for all providers
+          const result = {
+            translation: String(suggestion.translation || ''),
+            grammar: suggestion.grammar, // Can be string or object
+            rootWord: String(suggestion.rootWord || ''),
+            examples: Array.isArray(suggestion.examples) ? suggestion.examples.map(e => String(e || '')) : [],
+            sources: [] // Sources removed as per user request
+          };
         
         console.debug('[llmService] Returning suggestion from', config.provider);
         return result;
