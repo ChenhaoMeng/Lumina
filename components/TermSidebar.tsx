@@ -785,11 +785,8 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
             {/* Word Header */}
             <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-100 p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-900 font-serif mb-1">
+                <div className="text-2xl font-bold text-purple-900 font-serif">
                   {word}
-                </div>
-                <div className="text-sm text-purple-700 font-mono">
-                  {sanskritAnalysisResult.input || word}
                 </div>
               </div>
               
