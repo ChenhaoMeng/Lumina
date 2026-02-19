@@ -2,6 +2,18 @@
 
 ## Recent Updates (2025-02-19)
 
+### 🔥 Sanskrit Support (最重要功能!)
+
+梵语支持是本应用的核心功能!
+
+- **Dharma Mitra API集成** - 梵语语法分析
+- **Sandhi分词** - 自动拆分复合词
+- **词根查找** - 词典词根查询
+- **语法分析** - 词性标注、动词变位
+- **含义提取** - 多重含义显示
+- **转写方案支持** - Devanagari, IAST, SLP1, Harvard-Kyoto, ITRANS, WX, Velthuis, ISO 15919等
+- **自动处理** - 选择梵语词汇时自动分析
+
 ### UI/UX Improvements
 
 #### 1. Dictionary Results - Prominent Display
@@ -65,7 +77,11 @@
 
 ## Previous Releases
 
-### v1.0.0 (2025-01-XX)
+### v1.1.0
+- Complete theming support
+- Bug fixes and improvements
+
+### v1.0.0
 - Initial release
 - PDF/EPUB/Text reading
 - Vocabulary building with spaced repetition
