@@ -834,26 +834,34 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
 
             {/* Sandhi Analysis Section */}
             {sanskritAnalysisResult.segments && sanskritAnalysisResult.segments.length > 1 && (
-              <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4">
-                <div className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
-                  <Layers size={12} /> Sandhi Analysis
-                </div>
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  {sanskritAnalysisResult.segments.map((seg, idx) => (
-                    <React.Fragment key={idx}>
-                      <span className="bg-white px-3 py-1.5 rounded-lg border border-amber-200 font-mono text-sm font-bold text-amber-800">
-                        {seg.original}
-                      </span>
-                      {idx < sanskritAnalysisResult.segments.length - 1 && (
-                        <span className="text-amber-400 font-bold">+</span>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
-                <div className="mt-3 text-center text-xs text-amber-600">
-                  Original: <span className="font-bold">{word}</span> → {sanskritAnalysisResult.segments.map(s => s.original).join(' + ')}
-                </div>
-              </div>
+              (() => {
+                // Get unique original words
+                const uniqueWords = [...new Set(sanskritAnalysisResult.segments.map(s => s.original))];
+                if (uniqueWords.length <= 1) return null;
+                
+                return (
+                  <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4">
+                    <div className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                      <Layers size={12} /> Sandhi Analysis
+                    </div>
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {uniqueWords.map((w, idx) => (
+                        <React.Fragment key={idx}>
+                          <span className="bg-white px-3 py-1.5 rounded-lg border border-amber-200 font-mono text-sm font-bold text-amber-800">
+                            {w}
+                          </span>
+                          {idx < uniqueWords.length - 1 && (
+                            <span className="text-amber-400 font-bold">+</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-center text-xs text-amber-600">
+                      Original: <span className="font-bold">{word}</span> → {uniqueWords.join(' + ')}
+                    </div>
+                  </div>
+                );
+              })()
             )}
 
             {/* Segment Cards - Each word from Dharma Mitra */}
