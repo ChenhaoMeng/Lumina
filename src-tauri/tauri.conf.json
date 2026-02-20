@@ -27,7 +27,7 @@
   },
 "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["msi", "nsis"],
     "icon": [
       "icons/icon.ico",
       "icons/icon.png",
@@ -37,7 +37,12 @@
     "resources": [
       "../server",
       "../scripts"
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
   },
   "plugins": {
     "updater": {
