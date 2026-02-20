@@ -6,80 +6,91 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::Manager;
 
-fn find_resource_path(app_handle: &tauri::AppHandle) -> PathBuf {
-    // 尝试多种方式获取资源路径
-
-    // 方式1: resource_dir (开发环境和打包后都可能有效)
-    if let Ok(dir) = app_handle.path().resource_dir() {
-        let server_path = dir.join("server").join("index.js");
-        if server_path.exists() {
-            info!("使用 resource_dir: {:?}", dir);
-            return dir;
-        }
-        info!("resource_dir 存在但 server 不在: {:?}", dir);
-    }
-
-    // 方式2: 尝试 exe 同级目录的 resources
+fn find_base_path() -> PathBuf {
+    // 方式1: exe 同级目录（MSI 安装的实际位置）- 优先！
     if let Ok(exe_path) = std::env::current_exe() {
         if let Some(exe_dir) = exe_path.parent() {
-            let resources_path = exe_dir.join("resources");
-            let server_path = resources_path.join("server").join("index.js");
+            let server_path = exe_dir.join("server").join("index.js");
+            info!("检查 exe 同级目录: {:?}", exe_dir);
             if server_path.exists() {
-                info!("使用 exe 同级 resources: {:?}", resources_path);
-                return resources_path;
+                info!("✓ 在 exe 同级目录找到 server: {:?}", server_path);
+                return exe_dir.to_path_buf();
+            } else {
+                info!("✗ exe 同级目录不存在 server/index.js");
             }
-            // MSI 安装可能是 Program Files
-            let server_path2 = resources_path.join("server").join("index.js");
-            if server_path2.exists() {
-                info!("使用 Program Files resources: {:?}", resources_path);
-                return resources_path;
+
+            // 也检查 server 目录是否存在
+            let server_dir = exe_dir.join("server");
+            if server_dir.exists() {
+                info!("✓ server 目录存在: {:?}", server_dir);
+                return exe_dir.to_path_buf();
             }
         }
     }
 
-    // 方式3: 回退到 exe 同级目录
-    if let Ok(exe_path) = std::env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-            info!("使用 exe 同级目录: {:?}", exe_dir);
-            return exe_dir.to_path_buf();
-        }
-    }
-
-    // 返回一个默认路径
-    app_handle
-        .path()
-        .resource_dir()
-        .unwrap_or_else(|_| PathBuf::from("."))
+    // 方式2: 回退到当前目录
+    let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    info!("回退到当前目录: {:?}", current_dir);
+    current_dir
 }
 
 #[tauri::command]
-fn start_backend_services(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let base_path = find_resource_path(&app_handle);
+fn start_backend_services() -> Result<String, String> {
+    let base_path = find_base_path();
     let server_script = base_path.join("server").join("index.js");
     let python_script = base_path.join("scripts").join("enhanced_sanskrit_api.py");
 
+    info!("========== 后端服务启动 ==========");
     info!("基础路径: {:?}", base_path);
     info!("Node.js 脚本: {:?}", server_script);
     info!("Python 脚本: {:?}", python_script);
 
-    // 列出 resources 目录内容用于调试
+    // 列出基础路径目录内容
     if base_path.exists() {
         info!("基础路径目录内容:");
         if let Ok(entries) = fs::read_dir(&base_path) {
             for entry in entries.flatten() {
-                info!("  - {:?}", entry.path());
+                info!("  📁 {:?}", entry.file_name());
             }
         }
 
         // 检查 server 目录
         let server_dir = base_path.join("server");
         if server_dir.exists() {
-            info!("server 目录内容:");
+            info!("✓ server 目录存在");
             if let Ok(entries) = fs::read_dir(&server_dir) {
+                info!("server 目录内容 (前10个):");
                 for entry in entries.flatten().take(10) {
-                    info!("  - {:?}", entry.path());
+                    info!("  📄 {:?}", entry.file_name());
                 }
             }
+
+            // 检查 node_modules
+            let node_modules = server_dir.join("node_modules");
+            if node_modules.exists() {
+                info!("✓ node_modules 存在");
+            } else {
+                info!("✗ node_modules 不存在");
+            }
+        } else {
+            info!("✗ server 目录不存在!");
+        }
+    } else {
+        info!("✗ 基础路径不存在!");
+    }
+
+    // 检查 node 命令是否可用
+    match Command::new("node").arg("--version").output() {
+        Ok(output) => {
+            if output.status.success() {
+                let version = String::from_utf8_lossy(&output.stdout);
+                info!("✓ Node.js 可用: {}", version.trim());
+            } else {
+                info!("✗ node --version 失败");
+            }
+        }
+        Err(e) => {
+            info!("✗ 找不到 node 命令: {}", e);
         }
     }
 
@@ -92,11 +103,15 @@ fn start_backend_services(app_handle: tauri::AppHandle) -> Result<String, String
             .stderr(Stdio::piped())
             .spawn()
         {
-            Ok(_) => info!("Node.js 服务已启动 (端口 3006)"),
-            Err(e) => error!("启动 Node.js 服务失败: {}", e),
+            Ok(child) => {
+                info!("✓ Node.js 服务已启动 (PID: {})", child.id());
+            }
+            Err(e) => {
+                error!("✗ 启动 Node.js 服务失败: {}", e);
+            }
         }
     } else {
-        error!("Node.js 脚本不存在: {:?}", server_script);
+        error!("✗ Node.js 脚本不存在: {:?}", server_script);
     }
 
     // 启动 Python 服务 (端口 3008)
@@ -108,12 +123,18 @@ fn start_backend_services(app_handle: tauri::AppHandle) -> Result<String, String
             .stderr(Stdio::piped())
             .spawn()
         {
-            Ok(_) => info!("Python 服务已启动 (端口 3008)"),
-            Err(e) => error!("启动 Python 服务失败: {}", e),
+            Ok(child) => {
+                info!("✓ Python 服务已启动 (PID: {})", child.id());
+            }
+            Err(e) => {
+                error!("✗ 启动 Python 服务失败: {}", e);
+            }
         }
     } else {
-        warn!("Python 脚本不存在，梵语 API 将不可用");
+        warn!("⚠ Python 脚本不存在，梵语 API 将不可用");
     }
+
+    info!("========== 后端服务启动完成 ==========");
 
     Ok("服务已启动".to_string())
 }
@@ -131,7 +152,7 @@ fn get_service_status() -> Result<String, String> {
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    info!("Lumina 应用启动中...");
+    info!("========== Lumina 应用启动 ==========");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -144,54 +165,15 @@ fn main() {
             stop_backend_services,
             get_service_status
         ])
-        .setup(|app| {
+        .setup(|_app| {
             info!("执行应用设置...");
 
-            let handle = app.handle().clone();
-
+            // 延迟启动后端服务
             std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_secs(2));
+                std::thread::sleep(std::time::Duration::from_secs(3));
 
-                let base_path = find_resource_path(&handle);
-                let server_script = base_path.join("server").join("index.js");
-                let python_script = base_path.join("scripts").join("enhanced_sanskrit_api.py");
-
-                info!("启动后端服务...");
-                info!("基础路径: {:?}", base_path);
-                info!("Node.js 脚本: {:?}", server_script);
-                info!("Python 脚本: {:?}", python_script);
-
-                // 启动 Node.js 服务
-                if server_script.exists() {
-                    match Command::new("node")
-                        .arg(&server_script)
-                        .current_dir(base_path.join("server"))
-                        .stdout(Stdio::piped())
-                        .stderr(Stdio::piped())
-                        .spawn()
-                    {
-                        Ok(_) => info!("Node.js 服务已启动"),
-                        Err(e) => error!("启动 Node.js 服务失败: {}", e),
-                    }
-                } else {
-                    error!("Node.js 脚本不存在: {:?}", server_script);
-                }
-
-                // 启动 Python 服务
-                if python_script.exists() {
-                    match Command::new("python")
-                        .arg(&python_script)
-                        .current_dir(base_path.join("scripts"))
-                        .stdout(Stdio::piped())
-                        .stderr(Stdio::piped())
-                        .spawn()
-                    {
-                        Ok(_) => info!("Python 服务已启动"),
-                        Err(e) => error!("启动 Python 服务失败: {}", e),
-                    }
-                } else {
-                    warn!("Python 脚本不存在，梵语 API 不可用");
-                }
+                info!("开始启动后端服务...");
+                let _ = start_backend_services();
             });
 
             info!("应用设置完成");
