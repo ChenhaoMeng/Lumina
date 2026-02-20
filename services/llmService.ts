@@ -411,86 +411,19 @@ export const analyzeTerm = async (
     const wiktionaryDefinitions = firstEntry.definitions.join('\n- ');
     const partOfSpeech = firstEntry.partOfSpeech || 'unknown';
     
-    prompt = `WIKTIONARY-BASED LINGUISTIC ANALYSIS
+    prompt = `Analyze word "${term}" in context "${context}" (${language.name}).
 
-WORD: "${term}"
-SENTENCE CONTEXT: "${context}"
-LANGUAGE: ${language.name}
-
-WIKTIONARY DATA (AUTHORITATIVE SOURCE):
-Available dictionary entries:
-${entriesInfo}
-
-Primary entry details:
+Dictionary: ${entriesInfo}
 Part of Speech: ${partOfSpeech}
-${wiktionaryDefinitions ? `Definitions:\n- ${wiktionaryDefinitions}` : 'No definitions found'}
-${wiktionaryTranslations ? `Translations: ${wiktionaryTranslations}` : 'No translations found'}
+Definitions: ${wiktionaryDefinitions || 'none'}
+Translations: ${wiktionaryTranslations || 'none'}
 
-TASK: Based on the Wiktionary data above AND the sentence context, provide a complete linguistic analysis. 
-You MUST analyze the word's actual grammatical function IN THE GIVEN SENTENCE, not just the most common dictionary entry.
-
-CRITICAL CONTEXT ANALYSIS INSTRUCTIONS:
-1. **CONTEXT-BASED PART OF SPEECH**: First determine the word's actual part of speech IN THE SENTENCE CONTEXT:
-   - Look at grammatical markers: articles (der/die/das/ein), prepositions (am, im, zur, etc.), sentence position
-   - For German: Pay special attention to NOUNIZED ADJECTIVES (substantivierte Adjektive) like "der Alte", "das Gute", "die Weisen"
-   - If preceded by an article (der/die/das) and capitalized, it's likely a NOUNIZED ADJECTIVE functioning as a noun
-   - Example: "der Weisen" in context "am Gespräch der Weisen" = noun (genitive plural of "der Weise")
-
-2. **GRAMMAR ANALYSIS**: Provide detailed grammatical analysis based on ACTUAL CONTEXTUAL FUNCTION:
-   - For NOUNS (including nounized adjectives): Analyze case, gender, number
-   - For VERBS: Analyze tense, mood, person, number, voice  
-   - For ADJECTIVES (attributive): Analyze degree, gender, number, case
-   - For ADVERBS: Analyze degree
-   - For PRONOUNS: Analyze case, gender, number, person
-   - For OTHER: Provide relevant grammatical features
-
-3. **ENTRY SELECTION**: Choose the most appropriate dictionary entry based on context:
-   - If multiple entries exist (e.g., adjective "weise" and noun "Weise"), select based on sentence function
-   - For "der Weisen": select noun entry (genitive plural of "der Weise"), NOT adjective "weise"
-
-4. **TRANSLATION**: Provide English translation(s) based on selected dictionary entry. Use Wiktionary translations when available.
-
-5. **EXPLANATION**: Provide a brief, concise explanation of this word in this context (1-2 sentences). Explain its grammatical function and meaning in the given sentence.
-
-6. **ROOT WORD**: Identify dictionary form (lemma) of the selected entry.
-
-7. **EXAMPLES**: Provide 2 natural example sentences in ${language.name} showing similar usage.
-
-RETURN JSON with: translation, grammar, explanation, rootWord, examples`;
+Analyze grammatical function in context. Return JSON: {translation, grammar: {partOfSpeech, case, gender}, explanation, rootWord, examples}`;
   } else {
-    // 回退到标准prompt
-    prompt = `LINGUISTIC ANALYSIS TASK
-
-WORD: "${term}"
-SENTENCE CONTEXT: "${context}"
-LANGUAGE: ${language.name}
-
-TASK: Analyze the word's grammatical function IN THE GIVEN SENTENCE CONTEXT, not just its most common dictionary form.
-
-CRITICAL CONTEXT ANALYSIS INSTRUCTIONS:
-1. **CONTEXT-BASED PART OF SPEECH**: First determine the word's actual part of speech IN THE SENTENCE:
-   - Analyze grammatical markers: articles (der/die/das/ein), prepositions (am, im, zur, etc.), sentence position
-   - For German: Pay special attention to NOUNIZED ADJECTIVES (substantivierte Adjektive) like "der Alte", "das Gute", "die Weisen"
-   - If preceded by an article (der/die/das) and capitalized, it's likely a NOUNIZED ADJECTIVE functioning as a noun
-   - Example: "der Weisen" in context "am Gespräch der Weisen" = noun (genitive plural of "der Weise")
-
-2. **GRAMMAR ANALYSIS**: Provide detailed grammatical analysis based on ACTUAL CONTEXTUAL FUNCTION:
-   - For NOUNS (including nounized adjectives): Analyze case, gender, number
-   - For VERBS: Analyze tense, mood, person, number, voice  
-   - For ADJECTIVES (attributive): Analyze degree, gender, number, case
-   - For ADVERBS: Analyze degree
-   - For PRONOUNS: Analyze case, gender, number, person
-   - For OTHER: Provide relevant grammatical features
-
-3. **TRANSLATION**: Provide primary English translation(s) based on contextual function.
-
-4. **EXPLANATION**: Provide a brief, concise explanation of this word in this context (1-2 sentences). Explain its grammatical function and meaning in the given sentence.
-
-5. **ROOT WORD**: Identify dictionary form (lemma) based on selected analysis.
-
-6. **EXAMPLES**: Provide 2 natural example sentences in ${language.name} showing similar usage.
-
-RETURN JSON with: translation, grammar, explanation, rootWord, examples`;
+    // 回退到简短prompt
+    prompt = `Analyze word "${term}" in context "${context}" (${language.name}). 
+Provide: translation, grammar (partOfSpeech, case), explanation, rootWord, 2 examples.
+Return JSON.`;
   }
   
   // 添加Wiktionary URL作为来源
@@ -678,12 +611,13 @@ RETURN JSON with: translation, grammar, explanation, rootWord, examples`;
           body: JSON.stringify({
             model: config.model,
             messages: [
-              { role: 'system', content: 'You are a linguistic expert helper. Always return valid JSON following the schema for language learning analysis.' },
+              { role: 'system', content: 'You are a linguistic expert helper. Return concise JSON only.' },
               { role: 'user', content: prompt }
             ],
             response_format: { type: 'json_object' },
-            temperature: 0.1,  // 降低随机性，提高一致性
-            max_tokens: 500    // 限制响应长度，加快响应
+            temperature: 0.1,
+            max_tokens: 300,
+            stream: false
           })
         });
         const endTime = Date.now();
