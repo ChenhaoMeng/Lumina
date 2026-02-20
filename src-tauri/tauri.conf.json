@@ -36,7 +36,8 @@
     ],
     "resources": {
       "../server": "server",
-      "../scripts": "scripts"
+      "../scripts": "scripts",
+      "../server/node_modules": "server/node_modules"
     }
   },
   "plugins": {
