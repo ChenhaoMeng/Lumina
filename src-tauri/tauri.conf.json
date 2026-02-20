@@ -29,7 +29,10 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/icon.ico"
+      "icons/icon.ico",
+      "icons/icon.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png"
     ]
   },
   "plugins": {
