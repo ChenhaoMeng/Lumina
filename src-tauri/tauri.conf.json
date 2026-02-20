@@ -34,11 +34,10 @@
       "icons/128x128.png",
       "icons/128x128@2x.png"
     ],
-    "resources": {
-      "../server": "server",
-      "../scripts": "scripts",
-      "../server/node_modules": "server/node_modules"
-    }
+    "resources": [
+      "../server",
+      "../scripts"
+    ]
   },
   "plugins": {
     "updater": {
