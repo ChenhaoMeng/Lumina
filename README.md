@@ -3,7 +3,7 @@
 > 一个现代化的语言学习应用，集成了智能词典、词形变化分析和间隔重复系统  
 > A modern language learning app with intelligent dictionary, morphology analysis and spaced repetition system
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green.svg)
 
 ---
@@ -25,7 +25,7 @@ Download the latest installer from GitHub Releases:
 
 #### Windows 安装步骤 / Windows Installation Steps
 
-1. 下载 `Lumina_1.3.0_x64_en-US.msi` 或 `Lumina_1.3.0_x64-setup.exe`
+1. 下载 `Lumina_1.3.1_x64_en-US.msi` 或 `Lumina_1.3.1_x64-setup.exe`
 2. 双击运行安装程序
 3. 按提示完成安装
 4. 从开始菜单或桌面快捷方式启动
