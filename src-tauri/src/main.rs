@@ -6,33 +6,24 @@ use tauri::Manager;
 
 #[tauri::command]
 fn start_backend_services(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let app_dir = app_handle
+    let resource_dir = app_handle
         .path()
-        .app_data_dir()
+        .resource_dir()
         .map_err(|e| e.to_string())?;
-    let project_root = app_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.to_path_buf());
-
-    let project_root = match project_root {
-        Some(root) => root,
-        None => return Err("无法确定项目根目录".to_string()),
-    };
-
-    let node_script = project_root.join("server").join("index.js");
-    let python_script = project_root
+    let server_script = resource_dir.join("server").join("index.js");
+    let python_script = resource_dir
         .join("scripts")
         .join("enhanced_sanskrit_api.py");
 
-    info!("Node.js 脚本路径: {:?}", node_script);
+    info!("资源目录: {:?}", resource_dir);
+    info!("Node.js 脚本路径: {:?}", server_script);
     info!("Python 脚本路径: {:?}", python_script);
 
     // 启动 Node.js 服务 (端口 3006)
-    if node_script.exists() {
+    if server_script.exists() {
         match Command::new("node")
-            .arg(&node_script)
-            .current_dir(project_root.join("server"))
+            .arg(&server_script)
+            .current_dir(resource_dir.join("server"))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
@@ -41,14 +32,14 @@ fn start_backend_services(app_handle: tauri::AppHandle) -> Result<String, String
             Err(e) => error!("启动 Node.js 服务失败: {}", e),
         }
     } else {
-        error!("Node.js 脚本不存在: {:?}", node_script);
+        error!("Node.js 脚本不存在: {:?}", server_script);
     }
 
     // 启动 Python 服务 (端口 3008)
     if python_script.exists() {
         match Command::new("python")
             .arg(&python_script)
-            .current_dir(project_root.join("scripts"))
+            .current_dir(resource_dir.join("scripts"))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
@@ -98,41 +89,28 @@ fn main() {
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_secs(1));
 
-                let app_dir = match handle.path().app_data_dir() {
+                let resource_dir = match handle.path().resource_dir() {
                     Ok(dir) => dir,
                     Err(e) => {
-                        error!("获取应用数据目录失败: {}", e);
+                        error!("获取资源目录失败: {}", e);
                         return;
                     }
                 };
 
-                let project_root = app_dir
-                    .parent()
-                    .and_then(|p| p.parent())
-                    .map(|p| p.to_path_buf());
-
-                let project_root = match project_root {
-                    Some(root) => root,
-                    None => {
-                        error!("无法确定项目根目录");
-                        return;
-                    }
-                };
-
-                let node_script = project_root.join("server").join("index.js");
-                let python_script = project_root
+                let server_script = resource_dir.join("server").join("index.js");
+                let python_script = resource_dir
                     .join("scripts")
                     .join("enhanced_sanskrit_api.py");
 
                 info!("启动后端服务...");
-                info!("Node.js 脚本: {:?}", node_script);
+                info!("Node.js 脚本: {:?}", server_script);
                 info!("Python 脚本: {:?}", python_script);
 
                 // 启动 Node.js 服务
-                if node_script.exists() {
+                if server_script.exists() {
                     match Command::new("node")
-                        .arg(&node_script)
-                        .current_dir(project_root.join("server"))
+                        .arg(&server_script)
+                        .current_dir(resource_dir.join("server"))
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()
@@ -148,7 +126,7 @@ fn main() {
                 if python_script.exists() {
                     match Command::new("python")
                         .arg(&python_script)
-                        .current_dir(project_root.join("scripts"))
+                        .current_dir(resource_dir.join("scripts"))
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()
