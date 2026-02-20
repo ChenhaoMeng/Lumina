@@ -44,6 +44,7 @@ import VocabularyView from './components/VocabularyView';
 import AISettings from './components/AISettings';
 import DictionarySettings from './components/DictionarySettings';
 import AppearanceSettings from './components/AppearanceSettings';
+import UpdateSettings from './components/UpdateSettings';
 import { deleteDocument } from './services/documentStorage';
 
 const DEFAULT_AI_CONFIG = {
@@ -713,8 +714,10 @@ const App = () => {
                      </div>
                      <div className={`text-xs font-medium ${themeClasses.mutedText}`}>New Terms</div>
                    </div>
-                </div>
+</div>
               </section>
+
+              <UpdateSettings settings={settings} />
             </div>
           </div>
         )}

@@ -19,6 +19,7 @@
     "@google/genai": "^1.41.0",
     "@lingo-reader/epub-parser": "^0.4.5",
     "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-updater": "^2.0.0",
     "@types/dompurify": "^3.0.5",
     "@types/sqlite3": "^3.1.11",
     "cors": "^2.8.6",
