@@ -1322,6 +1322,8 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
             )}
                
                {/* AI Analysis Section - After Dictionary */}
+               {/* Skip if Sanskrit AI section is shown above (prevents duplicate display) */}
+               {aiSuggestion && !(language?.id === 'sa') && (
                <div className={`${theme.cardBg} rounded-3xl overflow-hidden border ${theme.border} shadow-sm`}>
                  {aiError ? (
                      <div className="p-6 space-y-4">
@@ -1415,11 +1417,13 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
                     </div>
                 )}
             </div>
+            )}
           </div>
         )}
 
 
           
+        
         
 
 
