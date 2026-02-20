@@ -855,6 +855,20 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
                     </React.Fragment>
                   ))}
                 </div>
+                
+                {/* Sandhi Rules */}
+                {sanskritAnalysisResult.sandhi_rules && sanskritAnalysisResult.sandhi_rules.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-amber-200">
+                    <div className="text-[9px] font-bold text-amber-600 uppercase tracking-wider mb-2">Rules Applied</div>
+                    <div className="space-y-1">
+                      {sanskritAnalysisResult.sandhi_rules.map((rule, idx) => (
+                        <div key={idx} className="text-xs text-amber-700 bg-white/50 px-2 py-1 rounded">
+                          {rule}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

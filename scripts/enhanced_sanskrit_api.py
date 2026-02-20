@@ -128,17 +128,77 @@ class SanskritProcessor:
 
             processing_time = int((time.time() - start_time) * 1000)
 
+            # 推断Sandhi规则
+            unsandhied_parts = [seg.get("unsandhied", "") for seg in segments]
+            sandhi_rules = self.infer_sandhi_rules(text, unsandhied_parts)
+
             return {
                 "success": True,
                 "input": text,
                 "segments": segments,
                 "segment_count": len(segments),
+                "sandhi_rules": sandhi_rules,
                 "processing_time_ms": processing_time,
             }
 
         except Exception as e:
             logger.error(f"[Dharma Mitra] 分析失败: {e}")
             return {"success": False, "error": str(e)}
+
+    def infer_sandhi_rules(self, original: str, parts: list) -> list:
+        """推断Sandhi规则"""
+        rules = []
+
+        if len(parts) < 2:
+            return rules
+
+        # 常见的Sandhi规则
+        sandhi_patterns = [
+            # Guṇa
+            (r"a(.+)i", r"a\1e", "Guṇa: a→e (before i)"),
+            (r"a(.+)u", r"a\1o", "Guṇa: a→o (before u)"),
+            (r"a(.+)f", r"a\1ar", "Guṇa: a→ar (before f)"),
+            (r"a(.+)x", r"a\1al", "Guṇa: a→al (before x)"),
+            # Vṛddhi
+            (r"a(.+)A", r"a\1A", "Vṛddhi: a→ā"),
+            (r"a(.+)i", r"a\1ai", "Vṛddhi: a→ai"),
+            (r"a(.+)u", r"a\1au", "Vṛddhi: a→au"),
+            # Visarga
+            (r"aH(.+)k", r"aM k", "Visarga: aḥ→aṃ before voiceless stops"),
+            (r"aH(.+)c", r"aS c", "Visarga: aḥ→aś before palatals"),
+            (r"aH(.+)t", r"aH t", "Visarga: aḥ before dental stops"),
+            # 半元音
+            (r"i(.+)a", r"ya", "半元音: i→y before vowels"),
+            (r"u(.+)a", r"va", "半元音: u→v before vowels"),
+        ]
+
+        # 简单的模式匹配
+        import re
+
+        for i in range(len(parts) - 1):
+            first = parts[i]
+            second = parts[i + 1]
+
+            # 检查是否有Guṇa
+            if first.endswith("a") and second.startswith("i"):
+                rules.append(f"Part {i + 1}: Guṇa - a + i → e")
+            elif first.endswith("a") and second.startswith("u"):
+                rules.append(f"Part {i + 1}: Guṇa - a + u → o")
+            elif first.endswith("a") and second.startswith("a"):
+                rules.append(f"Part {i + 1}: Guṇa - a + a → ā")
+            # Visarga
+            elif first.endswith("aḥ") or first.endswith("as"):
+                rules.append(f"Part {i + 1}: Visarga - ḥ → before consonant")
+            # 半元音
+            elif first.endswith("i") and second.startswith("a"):
+                rules.append(f"Part {i + 1}: Semivowel - i → y")
+            elif first.endswith("u") and second.startswith("a"):
+                rules.append(f"Part {i + 1}: Semivowel - u → v")
+
+        if not rules:
+            rules.append("Compound word (Sandhi applied)")
+
+        return rules
 
 
 processor = SanskritProcessor()

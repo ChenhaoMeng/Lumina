@@ -52,6 +52,7 @@ export interface AnalyzeResult {
   input: string;
   segments: SanskritSegment[];
   segment_count: number;
+  sandhi_rules?: string[];
   processing_time_ms: number;
   error?: string;
 }
