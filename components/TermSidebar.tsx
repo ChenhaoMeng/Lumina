@@ -836,15 +836,22 @@ const TermSidebar: React.FC<TermSidebarProps> = ({
                   <Layers size={12} /> Sandhi Split
                 </div>
                 
-                {/* Show unsandhied forms prominently */}
+                {/* Show unsandhied forms with lemma transformation */}
                 <div className="flex items-center justify-center gap-2 flex-wrap mb-3">
                   {sanskritAnalysisResult.segments.map((seg, idx) => (
                     <React.Fragment key={idx}>
-                      <span className="bg-white px-3 py-1.5 rounded-lg border border-amber-200 font-mono text-sm font-bold text-amber-800">
-                        {seg.unsandhied || seg.original}
-                      </span>
+                      <div className="flex flex-col items-center">
+                        <span className="bg-white px-3 py-1.5 rounded-lg border border-amber-200 font-mono text-sm font-bold text-amber-800">
+                          {seg.unsandhied || seg.original}
+                        </span>
+                        {seg.lemma && seg.lemma !== seg.unsandhied && (
+                          <span className="text-[10px] text-amber-500 mt-1">
+                            from: {seg.lemma}
+                          </span>
+                        )}
+                      </div>
                       {idx < sanskritAnalysisResult.segments.length - 1 && (
-                        <span className="text-amber-400 font-bold">+</span>
+                        <span className="text-amber-400 font-bold text-xl">+</span>
                       )}
                     </React.Fragment>
                   ))}
