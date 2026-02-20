@@ -520,6 +520,14 @@ entries.sort((a, b) => typeOrder[a.entryType] - typeOrder[b.entryType]);
 
 Lumina 可以使用 Tauri 构建为跨平台桌面应用，支持 Windows、macOS 和 Linux。
 
+### ✨ 桌面应用优势
+
+- **独立运行**：无需浏览器，直接启动应用
+- **离线使用**：词典数据本地存储，支持离线查询
+- **系统集成**：支持系统托盘、快捷键、通知
+- **性能更好**：原生渲染，更流畅的体验
+- **后台运行**：词典服务器内置，无需额外启动
+
 ### 🛠️ 环境要求
 
 #### 1. 安装 Rust
@@ -533,7 +541,16 @@ Tauri 基于 Rust 构建，需要先安装 Rust 工具链：
 winget install Rustlang.Rustup
 ```
 
-**macOS/Linux:**
+**macOS:**
+```bash
+# 方式一：通过 Homebrew（推荐）
+brew install rust
+
+# 方式二：官方安装脚本
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+**Linux:**
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
@@ -547,10 +564,83 @@ cargo --version
 #### 2. 系统依赖
 - **Windows**: 需要 Visual Studio Build Tools 或 Microsoft C++ Build Tools
 - **macOS**: 需要 Xcode Command Line Tools (`xcode-select --install`)
-- **Linux**: 需要基础开发工具 (gcc, pkg-config, libgtk-3-dev 等)
+- **Linux**: 需要基础开发工具 (gcc, pkg-config, libgtk-3-dev, libwebkit2gtk-4.1-dev 等)
 
-#### 3. 项目依赖
-Tauri CLI 已作为开发依赖包含在项目中，无需单独安装。
+#### 3. 安装 Node.js 和项目依赖
+确保 Node.js 18+ 已安装，然后：
+```bash
+npm install
+```
+
+### 📦 安装与使用
+
+#### Windows 安装
+
+**方式一：使用安装包（推荐）**
+1. 下载最新的安装包：
+   - MSI: `src-tauri/target/release/bundle/msi/Lumina_1.x.x_x64_en-US.msi`
+   - NSIS: `src-tauri/target/release/bundle/nssi/Lumina_1.x.x_x64-setup.exe`
+2. 双击安装包，按提示完成安装
+3. 从开始菜单或桌面快捷方式启动
+
+**方式二：直接运行 EXE**
+1. 下载 `lumina.exe` 文件
+2. 双击运行（首次运行可能需要几秒钟初始化）
+3. 应用会自动启动词典服务器
+
+**方式三：手动构建**
+```bash
+npm run build:tauri
+# 生成的 EXE 位于: src-tauri/target/release/lumina.exe
+```
+
+#### macOS 安装
+
+**前提条件**
+1. 安装 Rust: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+2. 安装 Xcode Command Line Tools: `xcode-select --install`
+3. 安装 Homebrew（如果没有）: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+**构建步骤**
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 构建桌面应用
+npm run build:tauri
+
+# 3. 查找生成的.app文件
+ls -la src-tauri/target/release/bundle/
+```
+
+**运行应用**
+```bash
+# 方式一：直接运行构建的.app
+open src-tauri/target/release/bundle/macos/Lumina.app
+
+# 方式二：复制到Applications
+cp -r src-tauri/target/release/bundle/macos/Lumina.app /Applications/
+
+# 方式三：运行可执行文件
+./src-tauri/target/release/lumina
+```
+
+**注意**: macOS 构建需要在 macOS 环境下进行。Windows/Linux 用户如需 macOS 版本，可以：
+1. 在 macOS 机器上构建
+2. 使用 GitHub Actions 进行跨平台构建
+
+#### Linux 安装
+
+```bash
+# 安装系统依赖（Debian/Ubuntu）
+sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev build-essential curl wget file
+
+# 构建应用
+npm run build:tauri
+
+# 运行
+./src-tauri/target/release/lumina
+```
 
 ### 🚀 开发运行
 
@@ -559,105 +649,11 @@ npm run dev:tauri
 ```
 
 此命令会启动：
+- **Tauri 桌面应用**: 独立窗口
 - **前端开发服务器**: http://localhost:3000
 - **词典服务器**: http://localhost:3006
-- **Tauri 桌面应用**: 独立窗口
 
-### 📦 构建应用
-
-#### 调试构建
-```bash
-npm run build:tauri
-```
-
-生成的可执行文件位于：`src-tauri/target/debug/lumina.exe` (Windows)
-
-#### 发布构建
-```bash
-cd src-tauri
-cargo build --release
-```
-
-或使用 Tauri CLI 生成安装包：
-```bash
-npm run build:tauri
-```
-
-发布版本位于：`src-tauri/target/release/`
-
-#### 平台特定安装包
-Tauri 会自动生成平台特定的安装包：
-- **Windows**: `.msi` 安装包 (在 `src-tauri/target/release/bundle/msi/`)
-- **macOS**: `.app` 和 `.dmg` (需要 macOS 环境)
-- **Linux**: `.AppImage` 和 `.deb`
-
-### 🎨 图标配置
-
-应用图标位于 `src-tauri/icons/` 目录：
-
-#### Windows
-- `icon.ico` - Windows 图标文件（已提供）
-- 需要多种尺寸：16x16, 32x32, 48x48, 64x64, 128x128, 256x256
-
-#### macOS
-- `icon.icns` - macOS 图标文件（需要自行创建）
-- 需要尺寸：16x16, 32x32, 64x64, 128x128, 256x256, 512x512, 1024x1024
-
-#### Linux
-- `icon.png` - PNG 格式图标（128x128 或 256x256）
-
-#### 简化配置
-如果不想管理图标，可以从 `tauri.conf.json` 中移除 `icon` 数组，使用默认图标。
-
-### ⚙️ 配置说明
-
-#### 端口配置
-- **前端开发服务器**: 3000 端口 (Vite)
-- **词典服务器**: 3006 端口 (Express)
-- **Tauri 开发服务器**: 自动检测可用端口
-
-#### 数据目录
-桌面应用的数据存储位置：
-- **Windows**: `%APPDATA%\com.lumina.app\`
-- **macOS**: `~/Library/Application Support/com.lumina.app/`
-- **Linux**: `~/.config/com.lumina.app/`
-
-### 🔧 故障排除
-
-#### 常见问题
-
-1. **Rust 安装失败**
-   ```bash
-   # 清理 Rust 安装并重试
-   rustup self uninstall
-   # 重新安装
-   ```
-
-2. **构建错误：缺少 WebView2**
-   - Windows 需要 WebView2 Runtime
-   - 下载：https://developer.microsoft.com/en-us/microsoft-edge/webview2/
-
-3. **端口冲突**
-   ```bash
-   # 查看占用端口的进程
-   # Windows:
-   netstat -ano | findstr :3000
-   # macOS/Linux:
-   lsof -i :3000
-   ```
-
-4. **图标文件缺失**
-   - 确保 `src-tauri/icons/icon.ico` 存在
-   - 或从 `tauri.conf.json` 中移除 `icon` 配置
-
-5. **词典服务器无法启动**
-   ```bash
-   # 单独启动服务器测试
-   cd server
-   npm run dev
-   ```
-
-### 📁 项目结构
+### 📁 文件结构
 
 ```
 src-tauri/
@@ -670,25 +666,98 @@ src-tauri/
 └── target/              # 构建输出
     ├── debug/          # 调试版本
     └── release/        # 发布版本
+        ├── lumina.exe           # Windows 可执行文件
+        └── bundle/
+            ├── msi/            # MSI 安装包
+            ├── nsis/           # NSIS 安装包
+            └── macos/          # macOS 应用包
 ```
 
-### 🔄 更新 Tauri
+### ⚙️ 配置说明
+
+#### 端口配置
+- **前端**: 3000 端口 (Vite)
+- **词典服务器**: 3006 端口 (Express)
+- **Tauri**: 自动检测可用端口
+
+#### 数据目录
+桌面应用的数据存储位置：
+- **Windows**: `%APPDATA%\com.lumina.app\`
+- **macOS**: `~/Library/Application Support/com.lumina.app/`
+- **Linux**: `~/.config/com.lumina.app/`
+
+### 🔧 故障排除
+
+#### Windows
+
+1. **缺少 WebView2**
+   - Windows 需要 WebView2 Runtime
+   - 下载：https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+   - 大多数 Windows 11 用户已预装
+
+2. **Rust 安装失败**
+   ```bash
+   rustup self uninstall
+   # 重新安装
+   ```
+
+3. **构建错误**
+   ```powershell
+   # 确保 Visual Studio Build Tools 已安装
+   # 或安装 Microsoft C++ Build Tools
+   ```
+
+#### macOS
+
+1. **权限问题**
+   ```bash
+   # 首次运行可能需要授权
+   sudo xattr -rd com.apple.quarantine /Applications/Lumina.app
+   ```
+
+2. **无法打开应用**
+   - 前往 "系统设置" > "隐私与安全性" > 允许应用运行
+
+3. **构建失败**
+   ```bash
+   # 确保 Xcode Command Line Tools 已安装
+   xcode-select --install
+   
+   # 确保 Rust 已正确安装
+   source ~/.cargo/env
+   ```
+
+#### Linux
+
+1. **缺少依赖**
+   ```bash
+   # Debian/Ubuntu
+   sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev build-essential
+   
+   # Fedora
+   sudo dnf install gtk3-devel webkit2gtk4.1-devel cargo
+   
+   # Arch
+   sudo pacman -S gtk3 webkit2gtk-4.1 base-devel
+   ```
+
+### 🔄 更新应用
+
 ```bash
-# 更新 Tauri CLI
-npm update @tauri-apps/cli
+# 更新前端依赖
+npm update
 
-# 更新 Tauri API
-npm update @tauri-apps/api
+# 更新 Tauri
+npm update @tauri-apps/cli @tauri-apps/api
 
-# 更新 Rust 依赖
-cd src-tauri
-cargo update
+# 重新构建
+npm run build:tauri
 ```
 
 ### 📝 开发提示
 
 1. **热重载**: 前端代码修改会自动热重载，Rust 代码修改需要重启应用
-2. **开发者工具**: 桌面应用中按 `F12` 打开开发者工具
+2. **开发者工具**: 桌面应用中按 `F12`（Windows）或 `Cmd+Option+I`（macOS）打开开发者工具
 3. **日志查看**: 控制台输出显示在终端中
 4. **环境变量**: 桌面应用可以读取系统环境变量
 
